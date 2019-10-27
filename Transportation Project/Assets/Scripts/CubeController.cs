@@ -4,10 +4,12 @@ using UnityEngine;
 
 public class CubeController : MonoBehaviour
 {
+    GameController myGameController;
+    public int myX, myY;
     // Start is called before the first frame update
     void Start()
     {
-        
+        myGameController = GameObject.Find("GameControllerObject").GetComponent<GameController>();
     }
 
     // Update is called once per frame
@@ -17,13 +19,7 @@ public class CubeController : MonoBehaviour
     }
 
     private void OnMouseDown()
-    { //if clicked, turn cube red. otherwise turn white
-        if (GameController.activeCube != null)
-        {
-            GameController.activeCube.GetComponent<Renderer>().material.color = Color.white;
-        }
-
-        gameObject.GetComponent<Renderer>().material.color = Color.red;
-        GameController.activeCube = gameObject;
+    { 
+        myGameController.ProcessClick(gameObject, myX, myY);
     }
 }
