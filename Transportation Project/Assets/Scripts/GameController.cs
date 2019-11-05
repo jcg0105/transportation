@@ -1,10 +1,13 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GameController : MonoBehaviour
 {
     public GameObject cubePreFab;
+    public Text cargoScoreText;
+    public Text totalScoreText;
     GameObject activeCube;
     Vector3 cubePos;
     int airplaneX, airplaneY, planeStartX, planeStartY;
@@ -19,12 +22,13 @@ public class GameController : MonoBehaviour
     //int trainCargo, trainMax;
     //int boatCargo, boatMax;
     int score;
+    int moveX, moveY;
 
     // Start is called before the first frame update
     void Start()
     {
         score = 0;
-        ScoreScript.scoreValue = score; //not working yet!
+        
 
         turnLength = 1.5f;
         turnTimer = turnLength;
@@ -64,19 +68,92 @@ public class GameController : MonoBehaviour
         depotY = 0;
         grid[depotX, depotY].GetComponent<Renderer>().material.color = Color.black;
 
+        moveX = 0;
+        moveY = 0;
+
     }
 
     // Update is called once per frame
     void Update()
     {
+        DetectKeyboardInput();
+
         if (Time.time > turnTimer)
         {
+            MoveAirplane();
             AddCargo();
             DeliverCargo();
-            print("Cargo: " + planeCargo + "   Score: " + score);
+            cargoScoreText.text = "Cargo: " + planeCargo;
+            totalScoreText.text = "Score: " + score;
             turnTimer += turnLength;
         }
     }
+
+    void DetectKeyboardInput()
+    {
+        if (Input.GetKeyDown(KeyCode.DownArrow))
+        {
+            moveY = -1;
+            moveX = 0;
+        }
+        else if (Input.GetKeyDown(KeyCode.UpArrow))
+        {
+            moveY = 1;
+            moveX = 0;
+        }
+        else if (Input.GetKeyDown(KeyCode.LeftArrow))
+        {
+            moveY = 0;
+            moveX = -1;
+        }
+        else if (Input.GetKeyDown(KeyCode.RightArrow))
+        {
+            moveY = 0;
+            moveX = 1;
+        }
+
+    }
+
+    void MoveAirplane()
+    {
+
+        if (airplaneActive)
+        {
+            //remove plane from old spot
+            if (airplaneX == depotX && airplaneY == depotY)
+            {
+                grid[depotX, depotY].GetComponent<Renderer>().material.color = Color.black;
+            }
+            else
+            {
+                grid[airplaneX, airplaneY].GetComponent<Renderer>().material.color = Color.white;
+            }
+            grid[airplaneX, airplaneY].transform.localScale /= 1.5f;
+
+            //put plane in new spot
+            airplaneX += moveX;
+            airplaneY += moveY;
+
+            //make sure plane doesn't go out of bounds
+            if (airplaneX >= gridX){
+                airplaneX = gridX - 1;
+            } else if (airplaneX < 0) {
+                airplaneX = 0;
+            }
+            if (airplaneY >= gridY) {
+                airplaneY = gridY - 1;
+            } else if (airplaneY < 0) {
+                airplaneY = 0;
+            }
+
+            grid[airplaneX, airplaneY].GetComponent<Renderer>().material.color = Color.red;
+            grid[airplaneX, airplaneY].transform.localScale *= 1.5f;
+        }
+        //reset movement
+        moveX = 0;
+        moveY = 0;
+    }
+
 
     public void ProcessClick(GameObject clickedCube, int x, int y)
     {
@@ -95,28 +172,7 @@ public class GameController : MonoBehaviour
                 clickedCube.transform.localScale *= 1.5f;
             }
         }
-        else
-        {
-            if (airplaneActive)
-            {
-                //remove plane from old spot
-                if (airplaneX == depotX && airplaneY == depotY)
-                {
-                    grid[depotX, depotY].GetComponent<Renderer>().material.color = Color.black;
-                } else
-                {
-                    grid[airplaneX, airplaneY].GetComponent<Renderer>().material.color = Color.white;
-                }
-                grid[airplaneX, airplaneY].transform.localScale /= 1.5f;
-
-                //put plane in new spot
-                airplaneX = x;
-                airplaneY = y;
-                grid[x, y].GetComponent<Renderer>().material.color = Color.red;
-                grid[x, y].transform.localScale *= 1.5f;
-            }
-
-        }
+        
     }
 
     void AddCargo()
