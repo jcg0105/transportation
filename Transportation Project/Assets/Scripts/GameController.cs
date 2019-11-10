@@ -5,24 +5,29 @@ using UnityEngine.UI;
 
 public class GameController : MonoBehaviour
 {
+    //CHALLENGES BY CHOICE: Feedback to the Player (UI timer and score text)
+
     public GameObject cubePreFab;
     public Text cargoScoreText;
     public Text totalScoreText;
+    public Text timerText;
+    float gameTimer = 0f;
     GameObject activeCube;
     Vector3 cubePos;
     int airplaneX, airplaneY, planeStartX, planeStartY;
     int depotX, depotY;
     GameObject[,] grid;
     int gridX, gridY;
-    bool airplaneActive;
+    public bool airplaneActive;
     float turnLength;
     float turnTimer;
     int planeCargo, planeMax;
     int cargoGain;
-    //int trainCargo, trainMax;
-    //int boatCargo, boatMax;
     int score;
     int moveX, moveY;
+    int targetX, targetY;
+    int seconds, minutes, hours;
+    string timerString;
 
     // Start is called before the first frame update
     void Start()
@@ -35,11 +40,6 @@ public class GameController : MonoBehaviour
 
         planeCargo = 0;
         planeMax = 90;
-        /*trainCargo = 0;
-        trainMax = 200;
-        boatCargo = 0;
-        boatMax = 550;
-        */
 
         cargoGain = 10;
 
@@ -62,6 +62,8 @@ public class GameController : MonoBehaviour
         planeStartY = gridY - 1;
         airplaneX = planeStartX;
         airplaneY = planeStartY;
+        targetX = airplaneX;
+        targetY = airplaneY;
         grid[airplaneX, airplaneY].GetComponent<Renderer>().material.color = Color.red;
         airplaneActive = false;
         depotX = gridX - 1;
@@ -76,7 +78,13 @@ public class GameController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        DetectKeyboardInput();
+        gameTimer += Time.deltaTime;
+        seconds = (int)(gameTimer % 60);
+        minutes = (int)(gameTimer / 60) % 60;
+        hours = (int)(gameTimer / 3600) % 24;
+        timerString = string.Format("{0:0}:{1:00}:{2:00}", hours, minutes, seconds);
+        timerText.text = timerString;
+        
 
         if (Time.time > turnTimer)
         {
@@ -89,33 +97,39 @@ public class GameController : MonoBehaviour
         }
     }
 
-    void DetectKeyboardInput()
+   void CalculateDirection()
     {
-        if (Input.GetKeyDown(KeyCode.DownArrow))
+        moveX = 0;
+        moveY = 0;
+
+        if (airplaneY > targetY) //down
         {
             moveY = -1;
-            moveX = 0;
         }
-        else if (Input.GetKeyDown(KeyCode.UpArrow))
+        else if (airplaneY < targetY) //up
         {
             moveY = 1;
-            moveX = 0;
-        }
-        else if (Input.GetKeyDown(KeyCode.LeftArrow))
+        } else
         {
             moveY = 0;
+        }
+        if (airplaneX > targetX) //left
+        {
             moveX = -1;
         }
-        else if (Input.GetKeyDown(KeyCode.RightArrow))
+        else if (airplaneX < targetX) //right
         {
-            moveY = 0;
             moveX = 1;
+        } else
+        {
+            moveX = 0;
         }
 
-    }
+    } 
 
     void MoveAirplane()
     {
+        CalculateDirection();
 
         if (airplaneActive)
         {
@@ -135,35 +149,40 @@ public class GameController : MonoBehaviour
             airplaneY += moveY;
 
             //make sure plane doesn't go out of bounds
-            if (airplaneX >= gridX){
+            if (airplaneX >= gridX)
+            {
                 airplaneX = gridX - 1;
-            } else if (airplaneX < 0) {
+            }
+            else if (airplaneX < 0)
+            {
                 airplaneX = 0;
             }
-            if (airplaneY >= gridY) {
+            if (airplaneY >= gridY)
+            {
                 airplaneY = gridY - 1;
-            } else if (airplaneY < 0) {
+            }
+            else if (airplaneY < 0)
+            {
                 airplaneY = 0;
             }
 
             grid[airplaneX, airplaneY].GetComponent<Renderer>().material.color = Color.red;
             grid[airplaneX, airplaneY].transform.localScale *= 1.5f;
         }
-        //reset movement
-        moveX = 0;
-        moveY = 0;
     }
 
 
     public void ProcessClick(GameObject clickedCube, int x, int y)
     {
-        if (x == airplaneX && y == airplaneY)
+        if (x == airplaneX  && y == airplaneY)
         {
             if (airplaneActive)
             {
                 //deactivate it
                 airplaneActive = false;
                 clickedCube.transform.localScale /= 1.5f;
+                targetX = airplaneX;
+                targetY = airplaneY;
             }
             else
             {
@@ -171,6 +190,10 @@ public class GameController : MonoBehaviour
                 airplaneActive = true;
                 clickedCube.transform.localScale *= 1.5f;
             }
+        } else if (airplaneActive)
+        {
+            targetX = x;
+            targetY = y;
         }
         
     }

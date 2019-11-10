@@ -22,4 +22,20 @@ public class CubeController : MonoBehaviour
     { 
         myGameController.ProcessClick(gameObject, myX, myY);
     }
+/*
+    private void OnMouseOver()
+    {
+        if (myGameController.airplaneActive)
+        {
+            transform.localScale = new Vector3(1.2F, 1.2F, 1.2F);
+        }
+    }
+
+    private void OnMouseExit()
+    {
+        if (myGameController.airplaneActive)
+        {
+            transform.localScale = new Vector3(1, 1, 1);
+        }
+    } */
 }
